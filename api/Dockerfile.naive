@@ -1,0 +1,11 @@
+FROM node:22
+
+WORKDIR /app
+
+# On copie tout sans distinction
+COPY . .
+
+# On installe tout, même les dépendances de développement
+RUN npm ci
+
+CMD ["node", "server.js"]
