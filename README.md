@@ -1,3 +1,116 @@
+
+
+
+
+
+
+
+# Instruction demandé dans Quete 7
+
+# Demo API avec Docker Compose
+
+Ce projet déploie une API Node.js connectée à une base de données PostgreSQL, avec une interface Adminer pour l'administration de la base. Le tout est orchestré avec Docker Compose.
+
+## 🛠️ Prérequis
+
+- Avoir [Docker](https://docs.docker.com/get-docker/) et le plugin Docker Compose installés.
+- Sur Windows : utiliser un terminal WSL ou Git Bash (pour la bonne gestion des chemins des volumes).
+
+## 🚀 Installation et démarrage
+
+1. **Préparer les variables d'environnement et le mot de passe (secret) :**
+   ```bash
+   cp .env.example .env
+   echo -n "demo" > db_password.txt
+   ```
+
+2. **Construire et lancer la stack en arrière-plan :**
+   ```bash
+   docker compose up -d --build
+   ```
+
+## 🔗 URLs d'accès
+
+Une fois les conteneurs démarrés, les services sont accessibles ici :
+- **API (Node.js) :** http://localhost:8080/products
+- **Adminer (Interface BDD) :** http://localhost:8081
+  - Système : PostgreSQL
+  - Serveur : `db`
+  - Utilisateur : `demo`
+  - Mot de passe : `demo`
+  - Base de données : `demo`
+
+## ✅ Vérification du statut
+
+Voici l'extrait de la commande testée pour prouver le bon fonctionnement de la stack, avec la base de données en état "healthy" grâce au healthcheck :
+
+**Commande testée :** `docker compose ps`
+
+**Résultat :**
+```text
+NAME                 IMAGE                 COMMAND                  SERVICE   STATUS                  PORTS
+demo-api-adminer-1   adminer:4             "entrypoint.sh php -…"   adminer   Up 2 minutes            0.0.0.0:8081->8080/tcp
+demo-api-api-1       demo-api-multi        "docker-entrypoint.s…"   api       Up 2 minutes            0.0.0.0:8080->3000/tcp
+demo-api-db-1        postgres:16-alpine    "docker-entrypoint.s…"   db        Up 2 minutes (healthy)  5432/tcp
+```
+
+## 🧹 Maintenance et nettoyage
+
+- **Arrêter les conteneurs sans perdre les données :**
+  ```bash
+  docker compose down
+  ```
+
+- **Repartir de zéro (⚠️ supprime les conteneurs ET efface le volume de la base de données) :** 
+  ```bash
+  docker compose down -v
+  ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # demo-api
 
 Le fil rouge des quêtes Docker : une mini-API "catalogue" que tu vas

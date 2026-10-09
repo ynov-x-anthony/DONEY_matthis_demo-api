@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Bind mount du script d'initialisation en lecture seule
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-demo}
+      POSTGRES_DB: ${POSTGRES_DB:-demo}
+      # On utilise le secret au lieu de POSTGRES_PASSWORD en clair
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    healthcheck:
+      # Vérifie que PostgreSQL est prêt à accepter des connexions
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-demo} -d ${POSTGRES_DB:-demo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8080}:3000"
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-demo}
+      PGDATABASE: ${POSTGRES_DB:-demo}
+      PGPASSWORD: ${DB_PASSWORD:-demo}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+
+secrets:
+  db_password:
+    file: ./db_password.txt
