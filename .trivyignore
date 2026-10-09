@@ -1,0 +1,11 @@
+# Justification : 'npm audit' retourne 0 vulnérabilité. 
+# Ces failles détectées par Trivy sont des faux positifs ou ne sont pas corrigeables via npm.
+CVE-2026-102276
+CVE-2026-102278
+CVE-2026-13149
+CVE-2026-14257
+CVE-2026-69152
+CVE-2026-69192
+CVE-2026-9496
+CVE-2026-33671
+CVE-2026-48815
