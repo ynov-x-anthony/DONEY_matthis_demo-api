@@ -63,7 +63,7 @@ jobs:
       - name: Déploiement simulé sur le runner GitHub
         run: |
           echo "🚀 Simulation d'un déploiement via Docker Compose sur la cible..."
-          # En vrai on ferait ça via SSH, ici on le simule sur la machine GitHub Actions
+          echo -n "demo" > db_password.txt
           docker compose pull
           docker compose up -d
           docker compose ps
