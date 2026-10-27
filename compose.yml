@@ -42,6 +42,14 @@ services:
     depends_on:
       - db
 
+
+  notifier:
+    build: ./notifier
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+
+
 volumes:
   pgdata:
 

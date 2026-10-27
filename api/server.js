@@ -59,11 +59,27 @@ app.get('/products', async (req, res) => {
 app.post('/products', async (req, res) => {
   const name = (req.body && req.body.name || '').trim();
   const priceCents = Number(req.body && req.body.price_cents);
+  
   if (!name || !Number.isInteger(priceCents) || priceCents < 0) {
     return res.status(400).json({ error: 'name (string) et price_cents (entier >= 0) requis' });
   }
+  
   try {
-    res.status(201).json(await db.addProduct(name, priceCents));
+    const newProduct = await db.addProduct(name, priceCents);
+    
+    // --- DÉBUT DE L'ÉTAPE 3 : Appel au Notifier (Best-effort) ---
+    // Note : Node.js 22 gère 'fetch' nativement, pas besoin de librairie externe.
+    fetch('http://notifier:3000/notify', {
+        method: 'POST',
+        body: JSON.stringify({ message: `Nouveau produit ajouté : ${name}` }),
+        headers: { 'Content-Type': 'application/json' }
+    }).catch(err => {
+        // En cas d'erreur (ex: notifier down), on loggue mais on ne fait pas planter la requête !
+        console.error(JSON.stringify({ level: 'warn', msg: 'Notifier injoignable (ignoré)', err: err.message }));
+    });
+    // --- FIN DE L'ÉTAPE 3 ---
+
+    res.status(201).json(newProduct);
   } catch (err) {
     res.status(503).json({ error: 'db_unavailable', detail: err.message });
   }

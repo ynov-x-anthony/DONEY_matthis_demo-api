@@ -1,26 +1,65 @@
-name: CI Security Scan
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
     tags: [ "v*" ]
 
+# Permissions requises pour pousser sur GHCR
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-scan:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api, notifier] # La magie de la matrice opère ici
+    
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
 
       - name: Build de l'image
-        run: docker build -f api/Dockerfile.multi -t demo-api:multi ./api
+        # On utilise la matrice pour pointer vers le bon dossier/Dockerfile
+        run: docker build -f ${{ matrix.service }}/Dockerfile -t ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.ref_name }} ./${{ matrix.service }}
 
       - name: Scan Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'demo-api:multi'
+          image-ref: 'ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.ref_name }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+      - name: Login to GitHub Container Registry
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push de l'image sur GHCR
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: docker push ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.ref_name }}
+
+  deploy:
+    needs: build-and-scan
+    # Ne se lance que si on a poussé un Tag (v*)
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code (pour récupérer le compose.yml)
+        uses: actions/checkout@v4
+
+      - name: Déploiement simulé sur le runner GitHub
+        run: |
+          echo "🚀 Simulation d'un déploiement via Docker Compose sur la cible..."
+          # En vrai on ferait ça via SSH, ici on le simule sur la machine GitHub Actions
+          docker compose pull
+          docker compose up -d
+          docker compose ps
